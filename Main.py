@@ -22,6 +22,7 @@ from random import *
 from PopupUI import Ui_msgbox_cnguser
 import qrcode
 import pyotp
+from selenium import webdriver
 
 
 #QR Code generation....
@@ -591,7 +592,7 @@ class MyWork(QtWidgets.QMainWindow):
                 c1.execute("SELECT User, User, Hash, Topt FROM security WHERE `ID` = ?", (self.user_id,))
                 conn2 = sqlite3.connect('Accounts.db')
                 c2 = conn2.cursor()
-                c2.execute("SELECT Account, User, Hash, Date FROM accounts WHERE `security_ID` = ?", (self.user_id,))
+                c2.execute("SELECT Account, User, Hash, Date, Url FROM accounts WHERE `security_ID` = ?", (self.user_id,))
                 with open(fileName, "w", newline='') as csv_file:
                     csv_writer = csv.writer(csv_file, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
                     csv_writer.writerows(c1)
@@ -676,11 +677,11 @@ class MyWork(QtWidgets.QMainWindow):
                             self.ui.listWidget.scrollToBottom()
 
                     if row_no > 1:
-                        row = [data[0], data[1], data[2], data[3], user_id]
+                        row = [data[0], data[1], data[2], data[3], user_id, data[4]]
                         db_list.append(row)
                 print(db_list)
                 c = conn2.cursor()
-                c.executemany('INSERT INTO accounts(Account, User, Hash, Date, security_ID) VALUES(?,?,?,?,?)', db_list)
+                c.executemany('INSERT INTO accounts(Account, User, Hash, Date, security_ID, Url) VALUES(?,?,?,?,?,?)', db_list)
                 conn2.commit()
                 conn2.close()
             print("Done")
@@ -727,7 +728,7 @@ class MyWork(QtWidgets.QMainWindow):
     #Table
     def cell_was_clicked(self, row, column):
         print("Row %d and Column %d was clicked" % (row, column))
-        if column == 1 or column == 2:
+        if column == 1 or column == 2 or column == 0:
             self.copySlot(None, column, row)
         elif column == 2:
             self.copySlot(None, column, row)
@@ -742,8 +743,9 @@ class MyWork(QtWidgets.QMainWindow):
         print(row)
         cell = self.ui.table_view.item(row, 1)
         data = cell.data(Qt.DisplayRole)
+        user = data
         print(data)
-        if mode == 2:
+        if mode == 2 or mode == 0:
             cell = self.ui.table_view.item(row, 0)
             acc_name = cell.data(Qt.DisplayRole)
             conn = sqlite3.connect('Accounts.db')
@@ -755,12 +757,33 @@ class MyWork(QtWidgets.QMainWindow):
             for hash in result:
                 print("match found:-", hash)
                 data = self.decrypt_pass(hash)
-            self.ui.listWidget.addItem("Password Copied To Clipboard!")
+
+            if mode == 0:
+                cell = self.ui.table_view.item(row, 0)
+                acc_name = cell.data(Qt.DisplayRole)
+                conn = sqlite3.connect('Accounts.db')
+                conn.commit()
+                c = conn.cursor()
+                c.execute("SELECT Url FROM accounts WHERE `Account` = ? AND `User` = ?", (acc_name, user))
+                result = c.fetchone()
+                conn.close()
+                for rl in result:
+                    print("url found:-", rl)
+                    url = rl
+                self.ui.listWidget.addItem("URL Opened in Browser")
+                driver = webdriver.Firefox(executable_path="C:\\geckodriver.exe")
+                driver.get(url)
+                driver.find_element_by_css_selector("input[type=\"text\"]").send_keys(user)
+                driver.find_element_by_css_selector("input[type=\"password\"]").send_keys(data)
+            else:
+                self.ui.listWidget.addItem("Password Copied To Clipboard!")
+                clipboard = QGuiApplication.clipboard()
+                clipboard.setText(data)
         else:
             self.ui.listWidget.addItem("Username Copied To Clipboard!")
+            clipboard = QGuiApplication.clipboard()
+            clipboard.setText(data)
         self.ui.listWidget.scrollToBottom()
-        clipboard = QGuiApplication.clipboard()
-        clipboard.setText(data)
         print("copied", data)
         self.ui.listWidget.scrollToBottom()
         return
@@ -848,9 +871,10 @@ class MyWork(QtWidgets.QMainWindow):
         acc_name = str(self.ui.tbox_acc_add.text())
         username = str(self.ui.tbox_user_add.text())
         password = str(self.ui.tbox_pass_add.text())
+        url = str(self.ui.tbox_url_add.text())
         user_id = self.user_id
         no = 2
-        if len(username) == 0 or len(password) == 0 or len(acc_name) == 0:
+        if len(username) == 0 or len(password) == 0 or len(acc_name) == 0 or len(url) == 0:
             print("Input Fields Cannot Be Empty!")
             select_color(str("red"), no, self)
             self.ui.lbl_warn_add.setText("Input Fields Cannot Be Empty!")
@@ -876,8 +900,8 @@ class MyWork(QtWidgets.QMainWindow):
                 date = now.toString(Qt.DefaultLocaleShortDate)
                 print(acc_name, username, password, str(self.main_pass), date)
                 c = conn.cursor()
-                c.execute('INSERT INTO accounts(Account, User, Hash, Date, security_ID) VALUES(?,?,?,?,?)'
-                          , (acc_name, username, encrypt(str(self.main_pass), password), date, user_id))
+                c.execute('INSERT INTO accounts(Account, User, Hash, Date, security_ID, Url) VALUES(?,?,?,?,?,?)'
+                          , (acc_name, username, encrypt(str(self.main_pass), password), date, user_id, url))
                 conn.commit()
                 select_color(str("green"), no, self)
                 self.ui.lbl_warn_add.setText("New Account Registerd!")
@@ -1173,7 +1197,7 @@ class see(Ui_MainWindow):
         conn = sqlite3.connect('Accounts.db')
         print("Main Pass:-", str(self.m_pass))
         c = conn.cursor()
-        c.execute("SELECT Account, User, Hash, Date FROM accounts WHERE `security_ID` = ?", (str(user_id),))
+        c.execute("SELECT Account, User, Hash, Date, Url FROM accounts WHERE `security_ID` = ?", (str(user_id),))
         result = c.fetchall()
         conn.close()
         hash_list = []
