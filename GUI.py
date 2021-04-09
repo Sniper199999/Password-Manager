@@ -996,7 +996,7 @@ for file in lam:
             header.setSectionResizeMode(3, QtWidgets.QHeaderView.ResizeToContents)
             
             item = self.listWidget.item(0)
-            item.setText(_translate("MainWindow", "Made By Sniper1999 (AKA Shubham)"))
+            item.setText(_translate("MainWindow", "Made By #16 (AKA Team_NOOBS)"))
 
             self.listWidget.scrollToBottom()
             self.listWidget.setSortingEnabled(__sortingEnabled)
