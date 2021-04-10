@@ -1,0 +1,39 @@
+QMenuBar {
+    background-color: rgb(23, 197, 174);
+    spacing: 3px;
+    color: white;
+    }
+    
+    QMenuBar::item {
+    padding: 1px 4px;
+    background: transparent;
+    }
+    
+    QMenuBar::item:selected {
+    background: #deeaf1;
+    }
+    
+    QMenuBar::item:pressed {
+    background: #5bffff;
+    }
+    
+    QMenu {
+    background-color: rgb(197, 253, 255);
+    border: 1px solid rgb(114, 231, 252);
+    }
+    
+    QMenu::item {
+    background-color: transparent;
+    }
+    
+    QMenu::item:selected {
+    background-color: rgb(25, 162, 254);
+    }
+    
+    QMenu::item:disabled {
+        color: rgb(231, 247, 248);
+    }
+    
+    QMenu::item:disabled:selected {
+        background-color: rgb(202, 255, 235);
+    }
