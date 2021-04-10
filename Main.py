@@ -99,7 +99,6 @@ class MyWork(QtWidgets.QMainWindow):
         self.show()
         self.threadpool = QThreadPool()
         print("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
-        self.say_hello("kakabura")
         self.table_dict = None
         self.update_list = 0
         self.num = None
@@ -122,6 +121,7 @@ class MyWork(QtWidgets.QMainWindow):
         self.ui.acnRefresh_db.triggered.connect(self.btn_refresh_clk)
         self.ui.acnDel_mainacc.triggered.connect(self.del_main_acc)
         self.ui.acnDark.triggered.connect(self.dark)
+        self.ui.acnLight.triggered.connect(self.light)
         self.ui.acnDefault.triggered.connect(self.default)
         #self.ui.acnAdd_2FA.triggered.connect()
         self.ui.acnDel_2FA.triggered.connect(self.del2fa)
@@ -131,7 +131,6 @@ class MyWork(QtWidgets.QMainWindow):
 
 
         # CheckBox actions
-        self.ui.chkbox_2fa_signup.stateChanged.connect(self.chkbox_toggled)
         self.ui.tbox_search.textChanged.connect(self.handleTextEntered)
         #self.ui.tbox_user_login.textChanged.connect(self.asd)
         self.dlb.tbox_cng_user.textChanged.connect(self.import_cng_username)
@@ -212,7 +211,6 @@ class MyWork(QtWidgets.QMainWindow):
                     c.execute('INSERT INTO security(User, Hash, Topt) VALUES(?,?,?)',
                               (username_reg, encrypt(pass_reg, username_reg), totp))
                     conn.commit()
-                    # print(c.lastrowid)
                     select_color(str("green"), no, self)
                     self.ui.lbl_warn_signup.setText("New Account Registerd!")
                     self.ui.listWidget.addItem("New Account Registered!")
@@ -243,14 +241,10 @@ class MyWork(QtWidgets.QMainWindow):
             self.disablebtn(False)
             self.ui.tbox_pass_login.setText("")
             self.ui.tbox_user_login.setText("")
-            #item = "Welcome " + username
             self.ui.listWidget.addItem("Logged In...")
-            #self.ui.listWidget.addItem(item)
             self.load()
-            #return 1
         else:
             print("wrong")
-            #return 0
 
     def log_btn_clk(self):
         tracemalloc.start()
@@ -272,7 +266,6 @@ class MyWork(QtWidgets.QMainWindow):
                 print("ID:-", row[0], "/ USER:- ", row[1], "/ HASH:-", row[2], "/ Hash1:-", row[3])
                 try:
                     if decrypt(pass1, row[2]) == username:
-                        print("dawdawww")
                         self.logged_in = True
                         self.user_id = row[0]
                         self.main_pass = pass1
@@ -283,7 +276,6 @@ class MyWork(QtWidgets.QMainWindow):
                             self.ui.stk_login.setCurrentIndex(1)
                             self.totp = pyotp.TOTP(can)
                         else:
-                            #self.ui.stk_user.setCurrentIndex(1)
                             select_color(str("green"), no, self)
                             print("Logged In..")
                             item = "Welcome " + username
@@ -319,16 +311,14 @@ class MyWork(QtWidgets.QMainWindow):
         self.threadpool.start(worker)
 
     def loads(self, result):
-        print("adaddwdwd", result)
+        print("Main List:-" ,result)
         self.ui.table_view.setRowCount(0)
         t1 = time.perf_counter()
         for row_no, row_data in enumerate(result):
-            #row_number = result.index(row_data)
             print("ROW:-", row_no, "/ DATA:-", row_data)
             self.ui.table_view.setSortingEnabled(False)
             self.ui.table_view.insertRow(row_no)
             for column_no, data in enumerate(row_data):
-                #column_number = row_data.index(data)
                 self.ui.table_view.setItem(row_no, column_no, QtWidgets.QTableWidgetItem(str(data)))
             self.ui.table_view.setSortingEnabled(True)
         t2 = time.perf_counter()
@@ -411,7 +401,6 @@ class MyWork(QtWidgets.QMainWindow):
     def add2fa(self):
         totp_hash = self.handle(self.username, self.main_pass, self.dlb.lbl_show_qr)
         self.dlb.add2fa_gui()
-        # totp = self.handle(self.username, self.main_pass, self.dlb.lbl_show_qr)
         while self.dlb.exec_():
             print("awddwdd")
             if self.dlb.tbox_confirm_2fa.text() != "":
@@ -490,7 +479,6 @@ class MyWork(QtWidgets.QMainWindow):
                 self.ui.tab_login.setGeometry(QtCore.QRect(0, 0, 265, 331))
             else:
                 self.ui.tab_login.setGeometry(QtCore.QRect(0, 0, 265, 185))
-            #self.chkbox_toggled()
 
     def dark(self):
         sshFile = "black.qss"
@@ -504,6 +492,23 @@ class MyWork(QtWidgets.QMainWindow):
         print("done")
         fh.close()
         sshFile = "black_tab.qss"
+        with open(sshFile, "r") as fh:
+            self.ui.tab_login.setStyleSheet(fh.read())
+        print("done")
+        fh.close()
+
+    def light(self):
+        sshFile = "light.qss"
+        with open(sshFile, "r") as fh:
+            self.ui.centralwidget.setStyleSheet(fh.read())
+        print("done")
+        fh.close()
+        sshFile = "light_menubar.qss"
+        with open(sshFile, "r") as fh:
+            self.ui.menubar.setStyleSheet(fh.read())
+        print("done")
+        fh.close()
+        sshFile = "light_tab.qss"
         with open(sshFile, "r") as fh:
             self.ui.tab_login.setStyleSheet(fh.read())
         print("done")
@@ -557,11 +562,11 @@ class MyWork(QtWidgets.QMainWindow):
     # disable/enable buttons....
     def disablebtn(self, bool):
         if bool is True:
-            self.ui.menuImport_Db.setDisabled(True)
-            self.ui.acnExport_db.setDisabled(True)
-            self.ui.acnLight.setDisabled(True)
-            self.ui.acnCng_masterpass.setDisabled(True)
-            self.ui.acnCng_username.setDisabled(True)
+            # self.ui.menuImport_Db.setDisabled(True)
+            # self.ui.acnExport_db.setDisabled(True)
+            # self.ui.acnLight.setDisabled(True)
+            # self.ui.acnCng_masterpass.setDisabled(True)
+            # self.ui.acnCng_username.setDisabled(True)
             self.ui.acnCsv_Update_Acc.setDisabled(True)
         self.ui.btn_refresh.setDisabled(bool)
         # self.ui.table_view.setDisabled(True)
@@ -604,7 +609,6 @@ class MyWork(QtWidgets.QMainWindow):
                 self.ui.listWidget.addItem(item)
                 self.ui.listWidget.scrollToBottom()
 
-                #self.btn_import_clk()
 
     def db_connect(self, database, username):
         conn = sqlite3.connect(database)
@@ -791,7 +795,6 @@ class MyWork(QtWidgets.QMainWindow):
     def autofill(self, event):
         print(event)
         row = self.ui.table_view.rowAt(event.y())
-        # col = self.ui.table_view.columnAt(event.x())
         print(row)
         col = 0
         cell = self.ui.table_view.item(row, col)
@@ -846,7 +849,6 @@ class MyWork(QtWidgets.QMainWindow):
         self.ui.table_view.setRowCount(0)
         row_no = 0
         for idx in table_dict:
-            # print("ACCOUNT:-", idx[0], "        USERNAME:-", idx[1])
             if idx[0].find(check) != -1 or idx[1].find(check) != -1 or (table_dict[idx])[1].find(check) != -1:
                 print("Match Found : " + str(idx))
                 self.ui.table_view.setSortingEnabled(False)
@@ -860,10 +862,7 @@ class MyWork(QtWidgets.QMainWindow):
                 row_no += 1
                 self.ui.table_view.setSortingEnabled(True)
             else:
-                # self.ui.table_view.setRowCount(0)
-                # print('Found Nothing')
                 pass
-            # print(results)
 
 
     #Add Accounts
@@ -985,7 +984,6 @@ class MyWork(QtWidgets.QMainWindow):
             value = self.show_popup("Are You Sure?", a, b)
             if value == 1024:
                 self.update_table(acc_name, username, None, None, None, str("delete"))
-                # trial(self, acc_name, username, None, None, None, str("delete"))
                 item = "Acc:-" + acc_name + " & User:-" + username + " has been deleted!"
                 self.ui.listWidget.addItem(item)
                 self.ui.listWidget.scrollToBottom()
@@ -1010,7 +1008,6 @@ class MyWork(QtWidgets.QMainWindow):
         msg.setText(message)
         msg.setInformativeText(info)
         msg.setWindowTitle(title)
-        # msg.setDetailedText("The details are as follows:")
         msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
         msg.resize(200, 300)
         retval = msg.exec_()
@@ -1165,21 +1162,6 @@ class MyWork(QtWidgets.QMainWindow):
         self.table_dict = table_dict
 
 
-    #Dont Know
-    def say_hello(self, user_text):
-        text = "Hello there, {0}!".format(user_text)
-        self.ui.lbl_warn_login.setText(text)
-
-    def update_label(self):
-        self.ui.lbl_warn_signup.setText("")
-
-    def chkbox_toggled(self):
-            if self.ui.chkbox_2fa_signup.isChecked() == True:
-                print("dawdw")
-            else:
-                print("awdwdwd")
-
-
 #Login/Multithreading
 class see(Ui_MainWindow):
     def leds(self, data):
@@ -1208,7 +1190,6 @@ class see(Ui_MainWindow):
         self.progress = progress_callback
         print("adwaddaddawdawdwd", progress_callback)
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            # results = [executor.map(self.leds, lis) for _ in range(len(lis))]
             results = executor.map(self.leds, hash_list)
         passes = []
         for f in results:
