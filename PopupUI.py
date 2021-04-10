@@ -195,13 +195,3 @@ class Ui_msgbox_cnguser(object):
         self.lbl_show_pass.setGeometry(QtCore.QRect(0, 0, 0, 0))
         self.msgz.setWindowTitle("Add 2FA")
 
-
-    #
-# if __name__ == "__main__":
-#     import sys
-#     app = QtWidgets.QApplication(sys.argv)
-#     msgbox_cnguser = QtWidgets.QDialog()
-#     ui = Ui_msgbox_cnguser()
-#     ui.setupUi(msgbox_cnguser)
-#     msgbox_cnguser.show()
-#     sys.exit(app.exec_())
